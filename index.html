@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>HTML Video Scrubber</title>
+    <script src="index.js"></script>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <h1>HTML <code>video</code> Scrubbar</h1>
+    <p>
+      This experiment explores how a video player scrubbar would look like if it
+      didn't contain full frames one next to another to fill the available space
+      with as many full frames as possible, but instead if each unit of resolution
+      of the available space was painted with a slice through the middle of the
+      video at that time.
+    </p>
+    <p>
+      Would the parts of the video be recognizable? Would it help see cuts and
+      landmarks better? Would it be preferrable to the status quo? You decide.
+    </p>
+    <!-- https://commons.wikimedia.org/wiki/File:HERO_-_Blender_Open_Movie-full_movie.webm -->
+    <!-- 2,048 × 858 pixels -->
+    <video id="playerVideo" controls muted src="blender-hero.webm"></video>
+    <div id="canvasDiv">
+
+    </div>
+    <p>
+      Movie <em>Hero</em> made by <em>Blender</em> and obtained from <em>Wikimedia</em>.
+      <a href="https://commons.wikimedia.org/wiki/File:HERO_-_Blender_Open_Movie-full_movie.webm">Source</a>
+    </p>
+    <h2>Generate scrubbar by seeking</h2>
+    <p>
+      This method seeks the video at times corresponding with each unit of resolution
+      of the available scrubbar space. It looks like a very jittery playback and
+      the spinner is blinking throughout of the generation process, so it is not
+      very suitable, but is the most efficient (each unit is generated once).
+    </p>
+    <button id="seekingButton">Generate scrubbar by seeking</button>
+    <p>It should generate this:</p>
+    <img src="blender-hero-seeking.png" />
+    <h2>Generate scrubbar as playing</h2>
+    <p>
+      This method makes use of the <code>timeupdate</code> event of a playing
+      video. It is real-time (so potentially slower than the seeking method) and
+      is dependent on the playback state of the video, but makes for a more
+      useful user experience.
+    </p>
+    <p>
+      To avoid gaps caused by potentially low time update event firing frequency,
+      several units are painted each time to ensure to cover the gaps in case of
+      a real time playback even if the update frequency is low.
+    </p>
+    <button id="playingButton">Generate scrubbar as playing</button>
+    <p>It should generate this:</p>
+    <img src="blender-hero-playing.png" />
+  </body>
+</html>
