@@ -15,3 +15,5 @@ https://tomashubelbauer.github.io/html-video-scrubber
 ## To-Do
 
 ### Add a WebM version to support Safari which currently lacks VP9 support
+
+### Add a sliding version of the playing method similar to the seeking one

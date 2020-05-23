@@ -22,13 +22,26 @@
     <!-- https://commons.wikimedia.org/wiki/File:HERO_-_Blender_Open_Movie-full_movie.webm -->
     <!-- 2,048 × 858 pixels -->
     <video id="playerVideo" controls muted src="blender-hero.webm"></video>
-    <div id="canvasDiv">
-
-    </div>
+    <div id="canvasDiv"></div>
     <p>
       Movie <em>Hero</em> made by <em>Blender</em> and obtained from <em>Wikimedia</em>.
       <a href="https://commons.wikimedia.org/wiki/File:HERO_-_Blender_Open_Movie-full_movie.webm">Source</a>
     </p>
+    <h2>Generate scrubbar by seeking with sliding</h2>
+    <p>
+      This is the same as the method below but instead of always taking the middle
+      slice from the frame, it takes a slice where if the scrubbar was filled with
+      frames side by side, the current position intersects the frame at some ratio
+      of its width and that same ratio of its width is used to take the slice in
+      the source video frame.
+    </p>
+    <p>
+      This provides much better results in static scenes and no worse results in
+      dynamic ones.
+    </p>
+    <button id="seekingSlidingButton">Generate scrubbar by seeking with sliding</button>
+    <p>It should generate this:</p>
+    <img src="blender-hero-seeking-sliding.png" />
     <h2>Generate scrubbar by seeking</h2>
     <p>
       This method seeks the video at times corresponding with each unit of resolution
@@ -39,6 +52,16 @@
     <button id="seekingButton">Generate scrubbar by seeking</button>
     <p>It should generate this:</p>
     <img src="blender-hero-seeking.png" />
+    <h2>Generate scrubbar as playing with sliding</h2>
+    <p>
+      This is the same principle as the seeking sliding version with the same
+      benefit of the playing version (not hijacking the playback position), but
+      also the same drawback (gaps in continuous playback and taking longer to
+      generate).
+    </p>
+    <button id="playingSlidingButton">Generate scrubbar as playing with sliding</button>
+    <p>It should generate this:</p>
+    <img src="blender-hero-playing-sliding.png" />
     <h2>Generate scrubbar as playing</h2>
     <p>
       This method makes use of the <code>timeupdate</code> event of a playing

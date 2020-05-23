@@ -1,7 +1,13 @@
 window.addEventListener('load', async () => {
   if (!location.search) {
+    const seekingSlidingButton = document.getElementById('seekingSlidingButton');
+    seekingSlidingButton.addEventListener('click', () => location.search = 'seeking-sliding');
+
     const seekingButton = document.getElementById('seekingButton');
     seekingButton.addEventListener('click', () => location.search = 'seeking');
+
+    const playingSlidingButton = document.getElementById('playingSlidingButton');
+    playingSlidingButton.addEventListener('click', () => location.search = 'playing-sliding');
 
     const playingButton = document.getElementById('playingButton');
     playingButton.addEventListener('click', () => location.search = 'playing');
@@ -22,8 +28,16 @@ window.addEventListener('load', async () => {
 
   const context = scrubbarCanvas.getContext('2d');
   switch (location.search) {
+    case '?seeking-sliding': {
+      await generateBySeekingSliding(playerVideo, context);
+      return;
+    }
     case '?seeking': {
       await generateBySeeking(playerVideo, context);
+      return;
+    }
+    case '?playing-sliding': {
+      await generateAsPlayingSliding(playerVideo, context);
       return;
     }
     case '?playing': {
@@ -34,6 +48,29 @@ window.addEventListener('load', async () => {
 
   alert(`Unexpected mode: '${location.search}'.`);
 });
+
+/** Seeks the video to times corresponding to each unit of the resolution */
+async function generateBySeekingSliding(/** @type {HTMLVideoElement} */ playerVideo, /** @type {CanvasRenderingContext2D} */ context) {
+  // TODO: Wait on the metadata/data to load to make sure the values are ready
+
+  let deferred;
+  playerVideo.addEventListener('seeked', () => deferred());
+
+  const size = (50 / playerVideo.videoHeight) * playerVideo.videoWidth;
+
+  // Seek, wait and capture a frame for each unit of the scrubbar resolution
+  for (let index = 0; index < playerVideo.videoWidth; index++) {
+    const position = (index / playerVideo.videoWidth) * playerVideo.duration;
+    const promise = new Promise(resolve => deferred = resolve);
+    playerVideo.currentTime = position;
+    await promise;
+
+    const ratio = (index % size) / size;
+
+    // Draw the single unit slice in the middle of the video frame at this time
+    context.drawImage(playerVideo, ratio * playerVideo.videoWidth, 0, 1, playerVideo.videoHeight, index, 0, 1, 50);
+  }
+}
 
 /** Seeks the video to times corresponding to each unit of the resolution */
 async function generateBySeeking(/** @type {HTMLVideoElement} */ playerVideo, /** @type {CanvasRenderingContext2D} */ context) {
@@ -52,6 +89,41 @@ async function generateBySeeking(/** @type {HTMLVideoElement} */ playerVideo, /*
     // Draw the single unit slice in the middle of the video frame at this time
     context.drawImage(playerVideo, playerVideo.videoWidth / 2, 0, 1, playerVideo.videoHeight, index, 0, 1, 50);
   }
+}
+
+/** Observes the video as it plays and for each position change updates scrubbar */
+async function generateAsPlayingSliding(/** @type {HTMLVideoElement} */ playerVideo, /** @type {CanvasRenderingContext2D} */ context) {
+  await playerVideo.play();
+  const frame = (50 / playerVideo.videoHeight) * playerVideo.videoWidth;
+
+  // Note that this is called between 4 and 66 times a second according to MDN
+  playerVideo.addEventListener('timeupdate', () => {
+    // Truncate the number to the nearest full unit to avoid blur and mark slot
+    const index = ~~((playerVideo.currentTime / playerVideo.duration) * playerVideo.videoWidth);
+
+    // TODO: Keep track of the update frequence and see if the multi-unit size
+    // is needed to begin with, this will save on the to-do below which has to
+    // do with not overwriting already captured unit slices (but that would
+    // still be needed in case of seeking).
+
+    // Note that the above alone would leave gaps and we can help fill them:
+    // Assume worst case 4 Hz update frequence, that's once every 250 ms
+    // Calculate the duration contained within a single unit (seconds per unit):
+    const unit = playerVideo.duration / playerVideo.videoWidth;
+
+    // Calculate how many resolution units the 250 ms frequency would contain:
+    const size = Math.ceil(.25 / unit);
+
+    const ratio = (((playerVideo.currentTime / playerVideo.duration) * context.canvas.width) % frame) / frame;
+
+    // Draw the size-unit slice in the middle of the video frame at this time
+    context.drawImage(playerVideo, (ratio * playerVideo.videoWidth) - size, 0, size, playerVideo.videoHeight, index, 0, size, 50);
+
+    // TODO: Improve by checking previous unit to see if transparent or not and
+    // not overwrite if it isn't - do this using `getImageData` for speed, check
+    // if all the bytes in the array are #000000ff (probably) and if so, skip
+    // the current unit and continue to the next unit in size for each unit of it
+  });
 }
 
 /** Observes the video as it plays and for each position change updates scrubbar */
