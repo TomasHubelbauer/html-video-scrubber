@@ -16,4 +16,18 @@ https://tomashubelbauer.github.io/html-video-scrubber
 
 ### Add a WebM version to support Safari which currently lacks VP9 support
 
-### Add a sliding version of the playing method similar to the seeking one
+### Finalize the seeking filling version and add one for playing, too
+
+Right now the seeking filling is like seeking but with the slice taken at the
+left edge instead of in the middle. It needs to be improved and maybe split into
+two variants: one which only draws the right side of the frame so it behaves the
+same way the seeking method does but gives more of a preview while being
+generated and another which draws the frame like the sliding one does, again
+just the portion to the right of the cursor, but the cursor pulses left to right
+based on the module, so I guess this might redraw already drawn parts to the
+left? We'll see, in any case, this will also give more preview while generating.
+
+Ultimately this should be meaningless in case of offline generation (because the
+results is served finished anyway so preview while generating is useless), but
+it might be worth it for online generation and maybe the generated scrubbars
+will look better?

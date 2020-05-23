@@ -36,6 +36,10 @@ window.addEventListener('load', async () => {
       await generateBySeeking(playerVideo, context);
       return;
     }
+    case '?seeking-filling': {
+      await generateBySeekingFilling(playerVideo, context);
+      return;
+    }
     case '?playing-sliding': {
       await generateAsPlayingSliding(playerVideo, context);
       return;
@@ -88,6 +92,27 @@ async function generateBySeeking(/** @type {HTMLVideoElement} */ playerVideo, /*
 
     // Draw the single unit slice in the middle of the video frame at this time
     context.drawImage(playerVideo, playerVideo.videoWidth / 2, 0, 1, playerVideo.videoHeight, index, 0, 1, 50);
+  }
+}
+
+/** Seeks the video to times corresponding to each unit of the resolution */
+async function generateBySeekingFilling(/** @type {HTMLVideoElement} */ playerVideo, /** @type {CanvasRenderingContext2D} */ context) {
+  // TODO: Wait on the metadata/data to load to make sure the values are ready
+
+  const size = (50 / playerVideo.videoHeight) * playerVideo.videoWidth;
+
+  let deferred;
+  playerVideo.addEventListener('seeked', () => deferred());
+
+  // Seek, wait and capture a frame for each unit of the scrubbar resolution
+  for (let index = 0; index < playerVideo.videoWidth; index++) {
+    const position = (index / playerVideo.videoWidth) * playerVideo.duration;
+    const promise = new Promise(resolve => deferred = resolve);
+    playerVideo.currentTime = position;
+    await promise;
+
+    // Draw the single unit slice in the middle of the video frame at this time
+    context.drawImage(playerVideo, 0, 0, playerVideo.videoWidth, playerVideo.videoHeight, index, 0, size, 50);
   }
 }
 
